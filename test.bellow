@@ -1,0 +1,7 @@
+.start
+mov 10, 0
+.loop
+out #0, 0
+dec 0
+jnz loop, #0
+deb "HELLO WORLD!", 0
