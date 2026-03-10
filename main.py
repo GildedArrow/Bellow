@@ -1,5 +1,6 @@
 import BLex
 import BParse
+import BVirtualMachine
 
 test_code = ''
 
@@ -10,10 +11,14 @@ lexer = BLex.BellowLexer()
 lexer_tokens = lexer.scan_tokens(test_code)
 
 parser = BParse.BellowParser()
-parser_program = parser.parse_tokens(lexer_tokens)
+program = parser.parse_tokens(lexer_tokens)
+
+bvm = BVirtualMachine.BVirtualMachine(256)
+bvm.load_program(program)
+
 
 def main():
-	pass
+	bvm.run()
 
 if __name__ == '__main__':
 	main()

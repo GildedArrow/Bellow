@@ -7,8 +7,8 @@ BELLOW_LEX_PATTERNS = [
 	('COMMENT', r';.*'),
 	('NUMBER', r'\d+'),
 	('STRING', r'"([^"\\]|\\.)*"'),
-	('LABEL_DEF', r'\.[A-Za-z_][A-Za-z0-9]*'),
-	('LABEL', r'[A-Za-z_][A-Za-z0-9]*'),
+	('LABEL_DEF', r'\.[A-Za-z_][A-Za-z0-9_]*'),
+	('LABEL', r'[A-Za-z_][A-Za-z0-9_]*'),
 	('HASHTAG', r'#'),
 	('AMPERSAND', r'&'),
 	('COMMA', r','),
@@ -18,18 +18,13 @@ BELLOW_LEX_PATTERNS = [
 class BLexerError(Enum):
 	ILLEGALCHARACTER = auto()
 
+'''
+TO ADD:
+XOR
+SHL
+SHR
+'''
 class BToken(Enum):
-	#Misc
-	LABEL_DEF = auto()
-	LABEL = auto()
-	NUMBER = auto()
-	STRING = auto()
-	HASHTAG = auto()
-	AMPERSAND = auto()
-	COMMA = auto()
-	EOF = auto()
-	NEWLINE = auto()
-
 	#0 arg instructions
 	RET = auto()
 
@@ -43,9 +38,9 @@ class BToken(Enum):
 	#2 argument instructions
 	MOV = auto()
 	JNZ = auto()
+	PRC = auto()
 	JPZ = auto()
 	DEB = auto() #Define bytes with a start location. ex: deb "Hello, world!", 0
-	OUT = auto()
 
 	#3 arg instructions
 	ADD = auto()
@@ -53,6 +48,28 @@ class BToken(Enum):
 	MUL = auto()
 	DIV = auto()
 	MOD = auto()
+
+	XOR = auto()
+	SHL = auto()
+	SHR = auto()
+	BND = auto()
+	BOR = auto()
+	AND = auto()
+	_OR = auto()
+
+	#4 arg instructions
+	OUT = auto()
+
+	#Misc
+	LABEL_DEF = auto()
+	LABEL = auto()
+	NUMBER = auto()
+	STRING = auto()
+	HASHTAG = auto()
+	AMPERSAND = auto()
+	COMMA = auto()
+	EOF = auto()
+	NEWLINE = auto()
 
 BELLOW_RESERVED_KEYWORDS = {
 	'ret': BToken.RET,
@@ -65,15 +82,24 @@ BELLOW_RESERVED_KEYWORDS = {
 
 	'mov': BToken.MOV,
 	'jnz': BToken.JNZ,
+	'prc': BToken.PRC,
 	'jpz': BToken.JPZ,
 	'deb': BToken.DEB,
-	'out': BToken.OUT,
 
 	'add': BToken.ADD,
 	'sub': BToken.SUB,
 	'mul': BToken.MUL,
 	'div': BToken.DIV,
 	'mod': BToken.MOD,
+	'xor': BToken.XOR,
+	'shl': BToken.SHL,
+	'shr': BToken.SHR,
+	'bnd': BToken.BND,
+	'bor': BToken.BOR,
+	'and': BToken.AND,
+	'_or': BToken._OR,
+
+	'out': BToken.OUT,
 }
 
 BELLOW_PATTERN = re.compile('|'.join(f'(?P<{name}>{pattern})' for name, pattern in BELLOW_LEX_PATTERNS))
@@ -83,6 +109,7 @@ class Token:
 		self.tokentype = tokentype
 		self.line = line
 		self.value = value
+		self.is_instruct = False
 
 	def __repr__(self):
 		return f'(Token = {self.tokentype}, line = {self.line}, value = \'{self.value}\'\n'
@@ -111,6 +138,7 @@ class BellowLexer:
 			value = match.group()
 
 			if kind == 'NEWLINE':
+				self.add_token(BToken.NEWLINE, line, value)
 				line += 1
 			elif kind == 'WS' or kind == 'COMMENT':
 				pass
@@ -121,8 +149,8 @@ class BellowLexer:
 				self.add_token(BToken.LABEL_DEF, line, value)
 			elif kind == 'LABEL':
 				val = value.lower()
-				if BELLOW_RESERVED_KEYWORDS.get(val):
-					self.add_token(BELLOW_RESERVED_KEYWORDS[val], line, value)
+				if val in BELLOW_RESERVED_KEYWORDS:
+					self.add_token(BELLOW_RESERVED_KEYWORDS[val], line, value, True)
 				else:
 					self.add_token(BToken.LABEL, line, value)
 			elif kind == 'HASHTAG':
@@ -141,7 +169,7 @@ class BellowLexer:
 		self.add_token(BToken.EOF, line)
 		return self.parseTokens
 
-	def ThrowError(self, errortype, value = None, line = 0):
+	def ThrowError(self, errortype, value = None, line = 1):
 		self.hadError = True
 
 		errormsg = f'[LEXER ERROR]'
@@ -153,5 +181,7 @@ class BellowLexer:
 				print(errormsg, f'Illegal character: \'{value}\' on line {line}')
 
 
-	def add_token(self, kind, line, value = None):
-		self.parseTokens.append(Token(kind, line, value))
+	def add_token(self, kind, line, value = None, is_instruct = False):
+		tok = Token(kind, line, value)
+		tok.is_instruct = is_instruct
+		self.parseTokens.append(tok)
