@@ -1,4 +1,8 @@
+import functools
+import struct
 from enum import Enum, auto
+
+import BParse
 from BLex import BToken
 
 import numpy as np
@@ -51,29 +55,36 @@ def exec_jpz(bvm, args):
 	if bvm.parse_arg(args[1]) == 0:
 		exec_jmp(bvm, args)
 
-def exec_deb(bvm, args):
-	pass
+def exec_jeq(bvm, args):
+	if bvm.parse_arg(args[1]) == bvm.parse_arg(args[2]):
+		exec_jmp(bvm, args)
+
+def exec_jne(bvm, args):
+	if bvm.parse_arg(args[1]) != bvm.parse_arg(args[2]):
+		exec_jmp(bvm, args)
+
+def exec_jle(bvm, args):
+	if bvm.parse_arg(args[1]) < bvm.parse_arg(args[2]):
+		exec_jmp(bvm, args)
+
+def exec_jgr(bvm, args):
+	if bvm.parse_arg(args[1]) > bvm.parse_arg(args[2]):
+		exec_jmp(bvm, args)
 
 def exec_xor(bvm, args):
-	pass
+	bvm.data[bvm.parse_arg(args[2])] = bvm.parse_arg(args[0]) ^ bvm.parse_arg(args[1])
 
 def exec_shl(bvm, args):
-	pass
+	bvm.data[bvm.parse_arg(args[2])] = bvm.parse_arg(args[0]) << bvm.parse_arg(args[1])
 
 def exec_shr(bvm, args):
-	pass
+	bvm.data[bvm.parse_arg(args[2])] = bvm.parse_arg(args[0]) >> bvm.parse_arg(args[1])
 
 def exec_bnd(bvm, args):
-	pass
+	bvm.data[bvm.parse_arg(args[2])] = bvm.parse_arg(args[0]) & bvm.parse_arg(args[1])
 
 def exec_bor(bvm, args):
-	pass
-
-def exec_and(bvm, args):
-	pass
-
-def exec__or(bvm, args):
-	pass
+	bvm.data[bvm.parse_arg(args[2])] = bvm.parse_arg(args[0]) | bvm.parse_arg(args[1])
 
 def exec_add(bvm, args):
 	bvm.data[bvm.parse_arg(args[2])] = bvm.parse_arg(args[0]) + bvm.parse_arg(args[1])
@@ -90,12 +101,18 @@ def exec_div(bvm, args):
 def exec_mod(bvm, args):
 	bvm.data[bvm.parse_arg(args[2])] = bvm.parse_arg(args[0]) % bvm.parse_arg(args[1])
 
-
-
-
-
 def exec_out(bvm, args):
-	pass
+	start = bvm.parse_arg(args[0])
+	end = bvm.parse_arg(args[1])
+	mode = bvm.parse_arg(args[2])
+
+	if mode == 0:
+		for i in range(start, end + 1):
+			print(bvm.data[i], end='')
+	else:
+		for i in range(start, end + 1):
+			print(chr(bvm.data[i]), end='')
+
 
 BELLOW_INSTRUCTIONS = {
 	BToken.RET.value: exec_ret,
@@ -110,15 +127,16 @@ BELLOW_INSTRUCTIONS = {
 	BToken.JNZ.value: exec_jnz,
 	BToken.PRC.value: exec_prc,
 	BToken.JPZ.value: exec_jpz,
-	BToken.DEB.value: exec_deb,
 	BToken.XOR.value: exec_xor,
 	BToken.SHL.value: exec_shl,
 	BToken.SHR.value: exec_shr,
 	BToken.BND.value: exec_bnd,
 	BToken.BOR.value: exec_bor,
-	BToken.AND.value: exec_and,
-	BToken._OR.value: exec__or,
 
+	BToken.JEQ.value: exec_jeq,
+	BToken.JNE.value: exec_jne,
+	BToken.JLE.value: exec_jle,
+	BToken.JGR.value: exec_jgr,
 	BToken.ADD.value: exec_add,
 	BToken.SUB.value: exec_sub,
 	BToken.MUL.value: exec_mul,
@@ -141,14 +159,35 @@ class BVirtualMachine:
 	def load_program(self, program):
 		self.program = program
 
+
+#	def load_bytecode(self, file):
+#		with open(file, 'rb') as file:
+#			signature = struct.unpack(">I", file.read(4)) #de ca fd ad
+#			if signature[0] != 0xdecafdad:
+#				print("Signature not recognized.")
+#				return
+#
+#			while True:
+#				op_data = file.read(1)
+#				if not op_data:
+#					break
+#
+#				op = struct.unpack("B", op_data)[0]
+#
+#				argc = BParse.BELLOW_INSTRUCTION_ARGS[op]
+#
+#				args = []
+
 	def parse_arg(self, arg):
 		if arg == -1: return -1
 
 		val = arg[1]
 
 		match arg[0]:
-			case 0 | 1: #label, string
+			case 0: #label
 				return val
+			case 1: #string
+				return ord(val)
 			case 2: #value at memory cell
 				return self.data[int(val)]
 			case 3: #value at the memory cell stored pointer of memory cell
@@ -159,21 +198,20 @@ class BVirtualMachine:
 	def run(self):
 		self.hadError = False
 
-		while self.program[self.pc] != -1:
-			line = self.program[self.pc]
-			instruction = line[0]
-
-			#print(line)
-
-			BELLOW_INSTRUCTIONS[instruction](self, line[1:len(line)])
-
-			self.pc += 1
-
+		while True:
 			if self.pc >= len(self.program):
 				break
 
 			if self.hadError:
 				break
+
+			line = self.program[self.pc]
+			instruction = line[0]
+
+			BELLOW_INSTRUCTIONS[instruction](self, line[1:len(line)])
+
+			self.pc += 1
+
 
 	def ThrowError(self, errortype, value = None, line = None):
 		errormsg = f'[RUNTIME ERROR]'

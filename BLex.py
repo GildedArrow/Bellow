@@ -40,9 +40,13 @@ class BToken(Enum):
 	JNZ = auto()
 	PRC = auto()
 	JPZ = auto()
-	DEB = auto() #Define bytes with a start location. ex: deb "Hello, world!", 0
 
 	#3 arg instructions
+	JEQ = auto() #Jump if equal
+	JNE = auto() #Jump if not equal
+	JLE = auto() #Jump if less than
+	JGR = auto() #Jump if greater than
+
 	ADD = auto()
 	SUB = auto()
 	MUL = auto()
@@ -54,8 +58,6 @@ class BToken(Enum):
 	SHR = auto()
 	BND = auto()
 	BOR = auto()
-	AND = auto()
-	_OR = auto()
 
 	#4 arg instructions
 	OUT = auto()
@@ -84,8 +86,11 @@ BELLOW_RESERVED_KEYWORDS = {
 	'jnz': BToken.JNZ,
 	'prc': BToken.PRC,
 	'jpz': BToken.JPZ,
-	'deb': BToken.DEB,
 
+	'jeq': BToken.JEQ,
+	'jne': BToken.JNE,
+	'jle': BToken.JLE,
+	'jgr': BToken.JGR,
 	'add': BToken.ADD,
 	'sub': BToken.SUB,
 	'mul': BToken.MUL,
@@ -94,10 +99,8 @@ BELLOW_RESERVED_KEYWORDS = {
 	'xor': BToken.XOR,
 	'shl': BToken.SHL,
 	'shr': BToken.SHR,
-	'bnd': BToken.BND,
-	'bor': BToken.BOR,
-	'and': BToken.AND,
-	'_or': BToken._OR,
+	'and': BToken.BND,
+	'or' : BToken.BOR,
 
 	'out': BToken.OUT,
 }

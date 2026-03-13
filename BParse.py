@@ -1,3 +1,5 @@
+import struct
+
 from enum import Enum, auto
 from BLex import BToken
 
@@ -22,8 +24,11 @@ BELLOW_INSTRUCTION_ARGS = {
 	BToken.JNZ: 2,
 	BToken.PRC: 2,
 	BToken.JPZ: 2,
-	BToken.DEB: 2,
 
+	BToken.JEQ: 3,
+	BToken.JNE: 3,
+	BToken.JLE: 3,
+	BToken.JLE: 3,
 	BToken.ADD: 3,
 	BToken.SUB: 3,
 	BToken.MUL: 3,
@@ -34,8 +39,6 @@ BELLOW_INSTRUCTION_ARGS = {
 	BToken.SHR: 3,
 	BToken.BND: 3,
 	BToken.BOR: 3,
-	BToken.AND: 3,
-	BToken._OR: 3,
 
 	BToken.OUT: 3,
 }
@@ -76,7 +79,23 @@ class BellowParser:
 
 		self.resolve_labels()
 
+		print(self.program)
 		return self.program
+
+	def save_to_file(self, filename = 'output.bc'):
+		with open(filename, 'wb') as file:
+			file.write(bytes.fromhex('decafdad')) #signature
+
+			for instruction in self.program:
+				op = instruction[0]
+				args = instruction[1:]
+
+				file.write(struct.pack('B', op))
+
+				for arg in args:
+					file.write(struct.pack('B', arg[0]))
+					file.write(struct.pack('B', arg[1]))
+
 
 	def resolve_labels(self):
 		resolved_program = []
