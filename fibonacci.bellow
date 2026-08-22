@@ -1,21 +1,21 @@
-;Fibonacci sequence in Bellow
-;Author: Will Terry
-;License: Public Domain
-;Description: Prints the first 10 fibonacci numbers
+// Prints the first 10 fibonacci numbers in Bellow
 
-mov 50, 0
-mov 0, 1
-mov 1, 2
-.loop
+const iters 10 // Change this value to the desired iterations
+var x
+var y
+var z
+var i
 
-prc #1, 0
-prc 10, 1
+mov iters, i
+mov 1, y
 
-add #1, #2, 3
-mov #2, 1
-mov #3, 2
+.fibonacci
+	out #x, 0
+	out 10, 1
 
-dec 0
-jnz loop, #0
+	add #x, #y, z
+	mov #y, x
+	mov #z, y
 
-;10 0 1 0 0 0 0 0 0 0 0
+	dec i
+jnz fibonacci, #i
