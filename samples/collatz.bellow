@@ -1,0 +1,28 @@
+var num_to_test
+var parity
+
+input num_to_test
+
+jmp _start
+
+.collatz
+    mod #num_to_test, 2, parity
+    jz even, #parity
+
+    mul #num_to_test, 3, num_to_test
+    inc num_to_test
+
+    ret
+
+    .even
+    div #num_to_test, 2, num_to_test
+
+    ret
+
+._start
+    .loop
+        jsr collatz
+        out #num_to_test, 0
+        out 10, 1
+
+        jne loop, #num_to_test, 1
