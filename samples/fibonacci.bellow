@@ -1,4 +1,5 @@
-// Prints the first 10 fibonacci numbers in Bellow
+// Description: Prints the first 10 fibonacci numbers in Bellow
+// Written by: Will Terry
 
 const iters 10 // Change this value to the desired iterations
 var x
