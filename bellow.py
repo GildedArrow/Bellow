@@ -24,11 +24,11 @@ def main():
 		code = code_generator.generate_bellow_code()
 		bcodegen.save_to_file(code, output_name)
 
-		interpreter = binterpreter.BInterpreter()
-		interpreter.program = load_program(output_name)
+		#interpreter = binterpreter.BInterpreter()
+		#interpreter.program = load_program(output_name)
 
-		if interpreter.program:
-			interpreter.run()
+		#if interpreter.program:
+		#	interpreter.run()
 	else:
 		print("Compilation failed.")
 		return
